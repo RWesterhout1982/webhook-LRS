@@ -2,61 +2,244 @@
 <html lang="nl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GoBright webhook test</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LRS Demo">
+<meta name="theme-color" content="#102d45">
+<title>LRS Live Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800;900&display=swap" rel="stylesheet">
 <style>
-  body { font-family: system-ui, sans-serif; max-width: 600px; margin: 20px auto; padding: 0 16px; }
-  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  button { padding: 18px; font-size: 16px; cursor: pointer; }
-  #log { margin-top: 20px; background: #f3f3f3; padding: 10px; font-family: monospace; font-size: 13px; white-space: pre-wrap; min-height: 100px; }
+  /* ===== LRS huisstijl ===== */
+  :root {
+    --navy: #183f62;
+    --navy-deep: #102d45;
+    --navy-dark: #0b2236;
+    --teal: #5f8a94;
+    --yellow: #faeb4e;
+    --white: #ffffff;
+    --muted: rgba(255,255,255,.62);
+    --radius: 22px;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--navy-deep);
+    color: var(--white);
+    font-family: "Montserrat", -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+    overflow: hidden;
+    position: relative;
+    padding: max(30px, env(safe-area-inset-top)) max(36px, env(safe-area-inset-right))
+             max(30px, env(safe-area-inset-bottom)) max(36px, env(safe-area-inset-left));
+    display: flex; flex-direction: column; gap: 30px;
+  }
+
+  /* Kleurvervaging zoals op de website */
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background:
+      radial-gradient(60% 80% at -8% 80%, rgba(95,138,148,.95), transparent 72%),
+      radial-gradient(45% 50% at 0% 10%, rgba(95,138,148,.45), transparent 70%),
+      radial-gradient(50% 60% at 105% 0%, rgba(24,63,98,.9), transparent 70%),
+      linear-gradient(180deg, var(--navy-deep), var(--navy-dark));
+  }
+
+  /* ===== Header ===== */
+  header { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+  .logo {
+    background: var(--navy);
+    border-radius: 16px 16px 0 16px;
+    padding: 14px 18px;
+    box-shadow: 0 12px 30px rgba(0,0,0,.35);
+    display: flex;
+  }
+  .logo img { height: 58px; width: auto; display: block; }
+
+  .title { text-align: right; }
+  .kicker {
+    color: var(--yellow); font-weight: 800; font-size: 13px; letter-spacing: 1.5px;
+    text-transform: uppercase; display: inline-flex; align-items: center; gap: 10px;
+  }
+  .kicker::before { content: ""; width: 28px; height: 2px; background: var(--yellow); }
+  h1 {
+    margin: 6px 0 0; font-weight: 900; font-size: 46px; line-height: 1;
+    letter-spacing: -.5px; text-transform: uppercase;
+  }
+  h1 .outline { color: transparent; -webkit-text-stroke: 1.5px var(--yellow); }
+
+  /* ===== Tegels ===== */
+  .grid {
+    flex: 1; min-height: 0;
+    display: grid; gap: 22px;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+  }
+  @media (orientation: portrait) {
+    .grid { grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(4, 1fr); }
+    h1 { font-size: 38px; }
+  }
+
+  .tile {
+    position: relative;
+    border: 0; padding: 26px;
+    border-radius: var(--radius) var(--radius) 0 var(--radius);
+    background: linear-gradient(155deg, #1f4b72 0%, var(--navy) 55%, #143656 100%);
+    color: var(--white); font: inherit; text-align: left;
+    display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start;
+    cursor: pointer; overflow: hidden;
+    box-shadow:
+      0 2px 4px rgba(0,0,0,.18),
+      0 14px 28px rgba(0,0,0,.28),
+      0 30px 60px rgba(5,20,35,.35),
+      inset 0 1px 0 rgba(255,255,255,.08);
+    transition: transform .18s ease, box-shadow .18s ease, background .3s ease, color .3s ease;
+  }
+  .tile:active {
+    transform: translateY(3px) scale(.98);
+    box-shadow: 0 2px 4px rgba(0,0,0,.2), 0 6px 14px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.08);
+  }
+
+  .tile .num {
+    font-weight: 900; font-size: 64px; line-height: .9;
+    color: transparent; -webkit-text-stroke: 1.5px var(--yellow);
+    transition: -webkit-text-stroke-color .3s ease;
+  }
+  .tile .bottom { width: 100%; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+  .tile .label { font-weight: 800; font-size: 21px; line-height: 1.15; text-transform: uppercase; letter-spacing: .2px; }
+  .tile .sub { font-weight: 500; font-size: 14px; color: var(--muted); margin-top: 6px; transition: color .3s ease; }
+  .tile .arrow {
+    flex: none; width: 46px; height: 46px; border-radius: 14px 14px 0 14px;
+    background: var(--yellow); color: var(--navy);
+    display: grid; place-items: center;
+    transition: background .3s ease, color .3s ease, transform .3s ease;
+  }
+  .tile .arrow svg { width: 20px; height: 20px; }
+
+  /* Rimpel bij aanraken */
+  .ripple {
+    position: absolute; border-radius: 50%; background: var(--yellow); opacity: .35;
+    transform: scale(0); pointer-events: none; animation: ripple .6s ease-out forwards;
+  }
+  @keyframes ripple { to { transform: scale(4); opacity: 0; } }
+
+  /* Bezig */
+  .tile.busy .arrow { animation: pulse .8s ease-in-out infinite; }
+  @keyframes pulse { 50% { transform: scale(.85); opacity: .6; } }
+
+  /* Geactiveerd: tegel wordt geel */
+  .tile.ok { background: var(--yellow); color: var(--navy); }
+  .tile.ok .num { -webkit-text-stroke-color: var(--navy); }
+  .tile.ok .sub { color: rgba(24,63,98,.75); }
+  .tile.ok .arrow { background: var(--navy); color: var(--yellow); }
+
+  .tile.err { box-shadow: 0 0 0 3px #ff6b6b, 0 14px 28px rgba(0,0,0,.28); }
+
+  /* ===== Melding ===== */
+  .toast {
+    position: fixed; left: 50%; bottom: max(30px, env(safe-area-inset-bottom));
+    transform: translate(-50%, 200%); opacity: 0;
+    background: var(--yellow); color: var(--navy);
+    padding: 16px 26px; border-radius: 16px 16px 0 16px;
+    font-weight: 800; font-size: 15px; text-transform: uppercase; letter-spacing: .5px;
+    box-shadow: 0 16px 40px rgba(0,0,0,.4);
+    transition: transform .35s cubic-bezier(.2,.9,.3,1.2), opacity .25s;
+  }
+  .toast.show { transform: translate(-50%, 0); opacity: 1; }
+  .toast.error { background: #ff6b6b; color: #fff; }
 </style>
 </head>
 <body>
-<h1>Webhook test</h1>
 
-<p>
-  Methode:
-  <label><input type="radio" name="method" value="POST" checked> POST</label>
-  <label><input type="radio" name="method" value="GET"> GET</label>
-</p>
+<header>
+  <div class="logo"><img src="data:image/png;base64,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" alt="LRS solutions"></div>
+  <div class="title">
+    <div class="kicker">Tik op een scène</div>
+    <h1>Live <span class="outline">demo</span></h1>
+  </div>
+</header>
 
-<div class="grid" id="buttons"></div>
-<div id="log"></div>
+<main class="grid" id="grid"></main>
+
+<div class="toast" id="toast"></div>
 
 <script>
-const hooks = [
-  "https://t1s.gobright.cloud/api/v1.0/Webhook/Execution/D8A3KN2WER2CC6A7EB455KXH3SANA2BA",
-  "https://t1s.gobright.cloud/api/v1.0/Webhook/Execution/FWCUUPQQBBJYV3NCEAKNNJ5ZTCNMN7FS",
-  "https://t1s.gobright.cloud/api/v1.0/Webhook/Execution/8RJR7YDUEN2ZT3HKHF2AAJS4BVN4Y3UU",
-  "https://t1s.gobright.cloud/api/v1.0/Webhook/Execution/Q4HQW2RVVR8DSMRBJWN6MHYB4AUTPPX8",
-  "https://t1s.gobright.cloud/api/v1.0/Webhook/Execution/JYVJ7HVAMP748SYQRPBKWKN7URVJYFRU",
-  "https://t1s.gobright.cloud/api/v1.0/Webhook/Execution/XC73DJ5E4HM6R32ARPXMQRRSVVYKPWMB",
-  "https://t1s.gobright.cloud/api/v1.0/Webhook/Execution/KJ5D5SKFDE7YDSFYPVHXYDJBAAEPRBEV",
-  "https://t1s.gobright.cloud/api/v1.0/Webhook/Execution/7W5NMRSFP8JQJSVPKEYMZXNAHTB6TUEY"
+/* ===== Pas hier de namen van de knoppen aan ===== */
+const buttons = [
+  { label: "Scène 1", sub: "Tik om te starten", url: "https://t1s.gobright.cloud/api/v1.0/Webhook/Execution/D8A3KN2WER2CC6A7EB455KXH3SANA2BA" },
+  { label: "Scène 2", sub: "Tik om te starten", url: "https://t1s.gobright.cloud/api/v1.0/Webhook/Execution/FWCUUPQQBBJYV3NCEAKNNJ5ZTCNMN7FS" },
+  { label: "Scène 3", sub: "Tik om te starten", url: "https://t1s.gobright.cloud/api/v1.0/Webhook/Execution/8RJR7YDUEN2ZT3HKHF2AAJS4BVN4Y3UU" },
+  { label: "Scène 4", sub: "Tik om te starten", url: "https://t1s.gobright.cloud/api/v1.0/Webhook/Execution/Q4HQW2RVVR8DSMRBJWN6MHYB4AUTPPX8" },
+  { label: "Scène 5", sub: "Tik om te starten", url: "https://t1s.gobright.cloud/api/v1.0/Webhook/Execution/JYVJ7HVAMP748SYQRPBKWKN7URVJYFRU" },
+  { label: "Scène 6", sub: "Tik om te starten", url: "https://t1s.gobright.cloud/api/v1.0/Webhook/Execution/XC73DJ5E4HM6R32ARPXMQRRSVVYKPWMB" },
+  { label: "Scène 7", sub: "Tik om te starten", url: "https://t1s.gobright.cloud/api/v1.0/Webhook/Execution/KJ5D5SKFDE7YDSFYPVHXYDJBAAEPRBEV" },
+  { label: "Scène 8", sub: "Tik om te starten", url: "https://t1s.gobright.cloud/api/v1.0/Webhook/Execution/7W5NMRSFP8JQJSVPKEYMZXNAHTB6TUEY" }
 ];
 
-const log = msg => {
-  const el = document.getElementById("log");
-  el.textContent = new Date().toLocaleTimeString() + "  " + msg + "\n" + el.textContent;
-};
+const grid = document.getElementById("grid");
+const toast = document.getElementById("toast");
+let toastTimer;
+const arrowSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 
-hooks.forEach((url, i) => {
-  const btn = document.createElement("button");
-  btn.textContent = "Button " + (i + 1);
-  btn.onclick = async () => {
-    const method = document.querySelector('input[name="method"]:checked').value;
-    btn.disabled = true;
+function showToast(msg, isError) {
+  toast.textContent = msg;
+  toast.classList.toggle("error", !!isError);
+  toast.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove("show"), 2200);
+}
+
+function ripple(tile, e) {
+  const r = tile.getBoundingClientRect();
+  const size = Math.max(r.width, r.height) / 2;
+  const x = (e.clientX || r.left + r.width / 2) - r.left - size / 2;
+  const y = (e.clientY || r.top + r.height / 2) - r.top - size / 2;
+  const s = document.createElement("span");
+  s.className = "ripple";
+  s.style.cssText = `width:${size}px;height:${size}px;left:${x}px;top:${y}px`;
+  tile.appendChild(s);
+  setTimeout(() => s.remove(), 650);
+}
+
+buttons.forEach((b, i) => {
+  const tile = document.createElement("button");
+  tile.className = "tile";
+  tile.innerHTML = `
+    <span class="num">${String(i + 1).padStart(2, "0")}</span>
+    <span class="bottom">
+      <span><div class="label">${b.label}</div><div class="sub">${b.sub}</div></span>
+      <span class="arrow">${arrowSvg}</span>
+    </span>`;
+
+  tile.addEventListener("click", async (e) => {
+    if (tile.classList.contains("busy")) return;
+    ripple(tile, e);
+    tile.classList.remove("ok", "err");
+    tile.classList.add("busy");
     try {
-      // no-cors: verzoek wordt verstuurd, maar het antwoord is niet leesbaar (CORS)
-      await fetch(url, { method, mode: "no-cors" });
-      log(`Button ${i + 1}: ${method} verstuurd`);
-    } catch (e) {
-      log(`Button ${i + 1}: FOUT - ${e.message}`);
+      await fetch(b.url, { method: "GET", mode: "no-cors", cache: "no-store" });
+      tile.classList.replace("busy", "ok");
+      showToast(`${b.label} geactiveerd`);
+    } catch (err) {
+      tile.classList.replace("busy", "err");
+      showToast(`${b.label} mislukt – controleer verbinding`, true);
     }
-    btn.disabled = false;
-  };
-  document.getElementById("buttons").appendChild(btn);
+    setTimeout(() => tile.classList.remove("ok", "err"), 2500);
+  });
+
+  grid.appendChild(tile);
 });
+
+/* Dubbeltik-zoom op iPad voorkomen */
+let lastTouch = 0;
+document.addEventListener("touchend", e => {
+  const now = Date.now();
+  if (now - lastTouch < 350) e.preventDefault();
+  lastTouch = now;
+}, { passive: false });
 </script>
 </body>
 </html>
