@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GoBright webhook test</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 600px; margin: 20px auto; padding: 0 16px; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  button { padding: 18px; font-size: 16px; cursor: pointer; }
+  #log { margin-top: 20px; background: #f3f3f3; padding: 10px; font-family: monospace; font-size: 13px; white-space: pre-wrap; min-height: 100px; }
+</style>
+</head>
+<body>
+<h1>Webhook test</h1>
+
+<p>
+  Methode:
+  <label><input type="radio" name="method" value="POST" checked> POST</label>
+  <label><input type="radio" name="method" value="GET"> GET</label>
+</p>
+
+<div class="grid" id="buttons"></div>
+<div id="log"></div>
+
+<script>
+const hooks = [
+  "https://t1s.gobright.cloud/api/v1.0/Webhook/Execution/D8A3KN2WER2CC6A7EB455KXH3SANA2BA",
+  "https://t1s.gobright.cloud/api/v1.0/Webhook/Execution/FWCUUPQQBBJYV3NCEAKNNJ5ZTCNMN7FS",
+  "https://t1s.gobright.cloud/api/v1.0/Webhook/Execution/8RJR7YDUEN2ZT3HKHF2AAJS4BVN4Y3UU",
+  "https://t1s.gobright.cloud/api/v1.0/Webhook/Execution/Q4HQW2RVVR8DSMRBJWN6MHYB4AUTPPX8",
+  "https://t1s.gobright.cloud/api/v1.0/Webhook/Execution/JYVJ7HVAMP748SYQRPBKWKN7URVJYFRU",
+  "https://t1s.gobright.cloud/api/v1.0/Webhook/Execution/XC73DJ5E4HM6R32ARPXMQRRSVVYKPWMB",
+  "https://t1s.gobright.cloud/api/v1.0/Webhook/Execution/KJ5D5SKFDE7YDSFYPVHXYDJBAAEPRBEV",
+  "https://t1s.gobright.cloud/api/v1.0/Webhook/Execution/7W5NMRSFP8JQJSVPKEYMZXNAHTB6TUEY"
+];
+
+const log = msg => {
+  const el = document.getElementById("log");
+  el.textContent = new Date().toLocaleTimeString() + "  " + msg + "\n" + el.textContent;
+};
+
+hooks.forEach((url, i) => {
+  const btn = document.createElement("button");
+  btn.textContent = "Button " + (i + 1);
+  btn.onclick = async () => {
+    const method = document.querySelector('input[name="method"]:checked').value;
+    btn.disabled = true;
+    try {
+      // no-cors: verzoek wordt verstuurd, maar het antwoord is niet leesbaar (CORS)
+      await fetch(url, { method, mode: "no-cors" });
+      log(`Button ${i + 1}: ${method} verstuurd`);
+    } catch (e) {
+      log(`Button ${i + 1}: FOUT - ${e.message}`);
+    }
+    btn.disabled = false;
+  };
+  document.getElementById("buttons").appendChild(btn);
+});
+</script>
+</body>
+</html>
